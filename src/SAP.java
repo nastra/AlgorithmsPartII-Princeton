@@ -105,16 +105,12 @@ public class SAP {
     }
 
     private SAPProcessor cachedResult(int v, int w) {
-        String keyOne = v + "_" + w;
-        if (cache.containsKey(keyOne)) {
-            return cache.get(keyOne);
-        }
-        String keyTwo = w + "_" + v;
-        if (cache.containsKey(keyTwo)) {
-            return cache.get(keyTwo);
+        String key = v + "_" + w;
+        if (cache.containsKey(key)) {
+            return cache.get(key);
         }
         SAPProcessor p = new SAPProcessor(v, w);
-        cache.put(keyOne, p);
+        cache.put(key, p);
         return p;
     }
 
@@ -122,11 +118,6 @@ public class SAP {
         String key = v.toString() + "_" + w.toString();
         if (cache.containsKey(key)) {
             return cache.get(key);
-        }
-
-        String keyTwo = w.toString() + "_" + v.toString();
-        if (cache.containsKey(keyTwo)) {
-            return cache.get(keyTwo);
         }
 
         SAPProcessor p = new SAPProcessor(v, w);
@@ -143,29 +134,6 @@ public class SAP {
             BreadthFirstDirectedPaths b = new BreadthFirstDirectedPaths(graph, w);
 
             process(a, b);
-            List<Integer> ancestors = new ArrayList<>();
-            for (int i = 0; i < graph.V(); i++) {
-                if (a.hasPathTo(i) && b.hasPathTo(i)) {
-                    ancestors.add(i);
-                }
-            }
-
-            int shortestAncestor = -1;
-            int minDistance = Integer.MAX_VALUE;
-            for (int currentAncestor : ancestors) {
-                int dist = a.distTo(currentAncestor) + b.distTo(currentAncestor);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    shortestAncestor = currentAncestor;
-                }
-            }
-            if (Integer.MAX_VALUE == minDistance) {
-                distance = -1;
-            } else {
-                distance = minDistance;
-
-            }
-            ancestor = shortestAncestor;
         }
 
         public SAPProcessor(Iterable<Integer> v, Iterable<Integer> w) {
@@ -173,29 +141,6 @@ public class SAP {
             BreadthFirstDirectedPaths b = new BreadthFirstDirectedPaths(graph, w);
 
             process(a, b);
-            List<Integer> ancestors = new ArrayList<>();
-            for (int i = 0; i < graph.V(); i++) {
-                if (a.hasPathTo(i) && b.hasPathTo(i)) {
-                    ancestors.add(i);
-                }
-            }
-
-            int shortestAncestor = -1;
-            int minDistance = Integer.MAX_VALUE;
-            for (int currentAncestor : ancestors) {
-                int dist = a.distTo(currentAncestor) + b.distTo(currentAncestor);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    shortestAncestor = currentAncestor;
-                }
-            }
-            if (Integer.MAX_VALUE == minDistance) {
-                distance = -1;
-            } else {
-                distance = minDistance;
-
-            }
-            ancestor = shortestAncestor;
         }
 
         private void process(BreadthFirstDirectedPaths a, BreadthFirstDirectedPaths b) {

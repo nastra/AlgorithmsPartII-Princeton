@@ -40,6 +40,9 @@ public class WordNet {
         for (int i = 0; i < g.V(); i++) {
             if (!g.adj(i).iterator().hasNext()) {
                 roots++;
+                if (roots > 1) {
+                    return false;
+                }
             }
         }
 

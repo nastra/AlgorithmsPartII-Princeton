@@ -43,16 +43,16 @@ public class Outcast {
      * @param args
      */
     public static void main(String[] args) {
+//        long start = System.nanoTime();
         WordNet wordnet = new WordNet(args[0], args[1]);
         Outcast outcast = new Outcast(wordnet);
 
-        long start = System.nanoTime();
         for (int t = 2; t < args.length; t++) {
             In in = new In(args[t]);
             String[] nouns = in.readAllStrings();
             StdOut.println(args[t] + ": " + outcast.outcast(nouns));
         }
-        long end = System.nanoTime();
-        System.out.println("Duration: " + (end - start) / 1000000);
+        // long end = System.nanoTime();
+        // System.out.println("Duration: " + (end - start) / 1000000);
     }
 }
