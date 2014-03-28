@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -9,8 +11,11 @@ import java.util.List;
 public class SAP {
     private Digraph graph;
 
-    public SAP(Digraph G) {
-        graph = new Digraph(G);
+    private Map<String, SAPProcessor> cache;
+
+    public SAP(Digraph g) {
+        cache = new HashMap<>();
+        graph = new Digraph(g);
     }
 
     private boolean validIndex(int i) {
@@ -39,7 +44,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return new SAPProcessor(v, w).distance;
+        return cachedResult(v, w).distance;
     }
 
     /**
@@ -52,8 +57,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        // TODO: add caching of the results
-        return new SAPProcessor(v, w).ancestor;
+        return cachedResult(v, w).ancestor;
     }
 
     /**
@@ -66,7 +70,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return new SAPProcessor(v, w).distance;
+        return cachedResult(v, w).distance;
     }
 
     /**
@@ -79,7 +83,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return new SAPProcessor(v, w).ancestor;
+        return cachedResult(v, w).ancestor;
     }
 
     /**
@@ -89,8 +93,8 @@ public class SAP {
      */
     public static void main(String[] args) {
         In in = new In(args[0]);
-        Digraph G = new Digraph(in);
-        SAP sap = new SAP(G);
+        Digraph graph = new Digraph(in);
+        SAP sap = new SAP(graph);
         while (!StdIn.isEmpty()) {
             int v = StdIn.readInt();
             int w = StdIn.readInt();
@@ -98,6 +102,36 @@ public class SAP {
             int ancestor = sap.ancestor(v, w);
             StdOut.printf("length = %d, ancestor = %d\n", length, ancestor);
         }
+    }
+
+    private SAPProcessor cachedResult(int v, int w) {
+        String keyOne = v + "_" + w;
+        if (cache.containsKey(keyOne)) {
+            return cache.get(keyOne);
+        }
+        String keyTwo = w + "_" + v;
+        if (cache.containsKey(keyTwo)) {
+            return cache.get(keyTwo);
+        }
+        SAPProcessor p = new SAPProcessor(v, w);
+        cache.put(keyOne, p);
+        return p;
+    }
+
+    private SAPProcessor cachedResult(Iterable<Integer> v, Iterable<Integer> w) {
+        String key = v.toString() + "_" + w.toString();
+        if (cache.containsKey(key)) {
+            return cache.get(key);
+        }
+
+        String keyTwo = w.toString() + "_" + v.toString();
+        if (cache.containsKey(keyTwo)) {
+            return cache.get(keyTwo);
+        }
+
+        SAPProcessor p = new SAPProcessor(v, w);
+        cache.put(key, p);
+        return p;
     }
 
     private class SAPProcessor {
@@ -108,6 +142,7 @@ public class SAP {
             BreadthFirstDirectedPaths a = new BreadthFirstDirectedPaths(graph, v);
             BreadthFirstDirectedPaths b = new BreadthFirstDirectedPaths(graph, w);
 
+            process(a, b);
             List<Integer> ancestors = new ArrayList<>();
             for (int i = 0; i < graph.V(); i++) {
                 if (a.hasPathTo(i) && b.hasPathTo(i)) {
@@ -117,11 +152,11 @@ public class SAP {
 
             int shortestAncestor = -1;
             int minDistance = Integer.MAX_VALUE;
-            for (int ancestor : ancestors) {
-                int dist = a.distTo(ancestor) + b.distTo(ancestor);
+            for (int currentAncestor : ancestors) {
+                int dist = a.distTo(currentAncestor) + b.distTo(currentAncestor);
                 if (dist < minDistance) {
                     minDistance = dist;
-                    shortestAncestor = ancestor;
+                    shortestAncestor = currentAncestor;
                 }
             }
             if (Integer.MAX_VALUE == minDistance) {
@@ -137,6 +172,7 @@ public class SAP {
             BreadthFirstDirectedPaths a = new BreadthFirstDirectedPaths(graph, v);
             BreadthFirstDirectedPaths b = new BreadthFirstDirectedPaths(graph, w);
 
+            process(a, b);
             List<Integer> ancestors = new ArrayList<>();
             for (int i = 0; i < graph.V(); i++) {
                 if (a.hasPathTo(i) && b.hasPathTo(i)) {
@@ -146,11 +182,37 @@ public class SAP {
 
             int shortestAncestor = -1;
             int minDistance = Integer.MAX_VALUE;
-            for (int ancestor : ancestors) {
-                int dist = a.distTo(ancestor) + b.distTo(ancestor);
+            for (int currentAncestor : ancestors) {
+                int dist = a.distTo(currentAncestor) + b.distTo(currentAncestor);
                 if (dist < minDistance) {
                     minDistance = dist;
-                    shortestAncestor = ancestor;
+                    shortestAncestor = currentAncestor;
+                }
+            }
+            if (Integer.MAX_VALUE == minDistance) {
+                distance = -1;
+            } else {
+                distance = minDistance;
+
+            }
+            ancestor = shortestAncestor;
+        }
+
+        private void process(BreadthFirstDirectedPaths a, BreadthFirstDirectedPaths b) {
+            List<Integer> ancestors = new ArrayList<>();
+            for (int i = 0; i < graph.V(); i++) {
+                if (a.hasPathTo(i) && b.hasPathTo(i)) {
+                    ancestors.add(i);
+                }
+            }
+
+            int shortestAncestor = -1;
+            int minDistance = Integer.MAX_VALUE;
+            for (int currentAncestor : ancestors) {
+                int dist = a.distTo(currentAncestor) + b.distTo(currentAncestor);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    shortestAncestor = currentAncestor;
                 }
             }
             if (Integer.MAX_VALUE == minDistance) {
