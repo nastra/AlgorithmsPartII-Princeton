@@ -8,7 +8,7 @@
  * 
  */
 public class Outcast {
-    private WordNet net;
+    private final WordNet net;
 
     public Outcast(WordNet wordnet) {
         net = wordnet;
@@ -43,7 +43,7 @@ public class Outcast {
      * @param args
      */
     public static void main(String[] args) {
-//        long start = System.nanoTime();
+        long start = System.nanoTime();
         WordNet wordnet = new WordNet(args[0], args[1]);
         Outcast outcast = new Outcast(wordnet);
 
@@ -52,7 +52,7 @@ public class Outcast {
             String[] nouns = in.readAllStrings();
             StdOut.println(args[t] + ": " + outcast.outcast(nouns));
         }
-        // long end = System.nanoTime();
-        // System.out.println("Duration: " + (end - start) / 1000000);
+        long end = System.nanoTime();
+        System.out.println("Duration: " + (end - start) / 1000000);
     }
 }
