@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -9,10 +11,10 @@ import java.util.List;
 public class SAP {
     private Digraph graph;
 
-    // private Map<String, SAPProcessor> cache;
+    private Map<String, SAPProcessor> cache;
 
     public SAP(Digraph g) {
-        // cache = new HashMap<>();
+        cache = new HashMap<>();
         graph = new Digraph(g);
     }
 
@@ -42,7 +44,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return new SAPProcessor(v, w).distance;
+        return cachedResult(v, w).distance;
     }
 
     /**
@@ -55,7 +57,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return new SAPProcessor(v, w).ancestor;
+        return cachedResult(v, w).ancestor;
     }
 
     /**
@@ -68,7 +70,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return new SAPProcessor(v, w).distance;
+        return cachedResult(v, w).distance;
     }
 
     /**
@@ -81,7 +83,7 @@ public class SAP {
         if (!validIndex(v) || !validIndex(w)) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        return new SAPProcessor(v, w).ancestor;
+        return cachedResult(v, w).ancestor;
     }
 
     /**
@@ -102,26 +104,30 @@ public class SAP {
         }
     }
 
-    // private SAPProcessor cachedResult(int v, int w) {
-    // String key = v + "_" + w;
-    // if (cache.containsKey(key)) {
-    // return cache.get(key);
-    // }
-    // SAPProcessor p = new SAPProcessor(v, w);
-    // cache.put(key, p);
-    // return p;
-    // }
-    //
-    // private SAPProcessor cachedResult(Iterable<Integer> v, Iterable<Integer> w) {
-    // String key = v.toString() + "_" + w.toString();
-    // if (cache.containsKey(key)) {
-    // return cache.get(key);
-    // }
-    //
-    // SAPProcessor p = new SAPProcessor(v, w);
-    // cache.put(key, p);
-    // return p;
-    // }
+    private SAPProcessor cachedResult(int v, int w) {
+        String key = v + "_" + w;
+        if (cache.containsKey(key)) {
+            SAPProcessor p = cache.get(key);
+            cache.remove(key);
+            return p;
+        }
+        SAPProcessor p = new SAPProcessor(v, w);
+        cache.put(key, p);
+        return p;
+    }
+
+    private SAPProcessor cachedResult(Iterable<Integer> v, Iterable<Integer> w) {
+        String key = v.toString() + "_" + w.toString();
+        if (cache.containsKey(key)) {
+            SAPProcessor p = cache.get(key);
+            cache.remove(key);
+            return p;
+        }
+
+        SAPProcessor p = new SAPProcessor(v, w);
+        cache.put(key, p);
+        return p;
+    }
 
     private class SAPProcessor {
         int ancestor;
