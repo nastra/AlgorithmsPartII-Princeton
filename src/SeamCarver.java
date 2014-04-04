@@ -107,30 +107,33 @@ public class SeamCarver {
      * @param seam
      */
     public void removeHorizontalSeam(int[] seam) {
-        if (width() <= 1 || height() <= 1) {
-            throw new IllegalArgumentException("The width and height of the picture must be greatern than 1");
-        }
-        if (seam.length <= 1) {
-            throw new IllegalArgumentException("The vertical size must be greater than 1.");
-        }
-
+        checkValidity(seam);
         if (seam.length > width()) {
             throw new IllegalArgumentException("The seam must not be greater than the image width!");
-        }
-
-        for (int i = 0; i < seam.length - 1; i++) {
-            if (Math.abs(seam[i] - seam[i + 1]) > 1) {
-                throw new IllegalArgumentException();
-            }
         }
 
         this.picture = removeSeam(seam, false);
         double[][] oldEnergy = energy;
         energy = new double[width()][height()];
-
+        // TODO: possible improvement would be to recalculate only the energy that has actually changed
         for (int y = 0; y < height(); y++) {
             for (int x = 0; x < width(); x++) {
                 energy[x][y] = energy(x, y);
+            }
+        }
+    }
+
+    private void checkValidity(int[] seam) {
+        if (width() <= 1 || height() <= 1) {
+            throw new IllegalArgumentException("The width and height of the picture must be greatern than 1");
+        }
+        if (seam.length <= 1) {
+            throw new IllegalArgumentException("The seam size must be greater than 1.");
+        }
+
+        for (int i = 0; i < seam.length - 1; i++) {
+            if (Math.abs(seam[i] - seam[i + 1]) > 1) {
+                throw new IllegalArgumentException();
             }
         }
     }
@@ -141,26 +144,16 @@ public class SeamCarver {
      * @param seam
      */
     public void removeVerticalSeam(int[] seam) {
-        if (width() <= 1 || height() <= 1) {
-            throw new IllegalArgumentException("The width and height of the picture must be greatern than 1");
-        }
-        if (seam.length <= 1) {
-            throw new IllegalArgumentException("The vertical size must be greater than 1.");
-        }
+        checkValidity(seam);
         if (seam.length > height()) {
             throw new IllegalArgumentException("The seam must not be greater than the image height!");
-        }
-
-        for (int i = 0; i < seam.length - 1; i++) {
-            if (Math.abs(seam[i] - seam[i + 1]) > 1) {
-                throw new IllegalArgumentException();
-            }
         }
 
         this.picture = removeSeam(seam, true);
         double[][] oldEnergy = energy;
         energy = new double[width()][height()];
 
+        // TODO: possible improvement would be to recalculate only the energy that has actually changed
         for (int y = 0; y < height(); y++) {
             for (int x = 0; x < width(); x++) {
                 energy[x][y] = energy(x, y);
