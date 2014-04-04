@@ -11,7 +11,7 @@ Week 1 - WordNet
  - **SAP.java** - Represents an immutable data type for shortest ancestral paths.
  - **Outcast.java** - Identifies outcasts.
 
-Week 2 - ...
+Week 2 - Seam Carving (Content-Aware Resizing)
 --------------------------------
- - ...
+ - **SeamCarver.java** - Seam-carving is a content-aware image resizing technique where the image is reduced in size by one pixel of height (or width) at a time.
  

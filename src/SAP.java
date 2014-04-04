@@ -108,6 +108,7 @@ public class SAP {
         String key = v + "_" + w;
         if (cache.containsKey(key)) {
             SAPProcessor p = cache.get(key);
+            // we need to cache only for 2 consecutive calls, therefore we delete the result after the second call
             cache.remove(key);
             return p;
         }
@@ -120,6 +121,7 @@ public class SAP {
         String key = v.toString() + "_" + w.toString();
         if (cache.containsKey(key)) {
             SAPProcessor p = cache.get(key);
+            // we need to cache only for 2 consecutive calls, therefore we delete the result after the second call
             cache.remove(key);
             return p;
         }
