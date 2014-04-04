@@ -10,8 +10,8 @@ public class SeamCarver {
         this.picture = new Picture(picture);
         energy = new double[picture.width()][picture.height()];
         parent = new int[picture.width()][picture.height()];
-        for (int x = 0; x < width(); x++) {
-            for (int y = 0; y < height(); y++) {
+        for (int y = 0; y < height(); y++) {
+            for (int x = 0; x < width(); x++) {
                 energy[x][y] = energy(x, y);
             }
         }
@@ -107,10 +107,32 @@ public class SeamCarver {
      * @param seam
      */
     public void removeHorizontalSeam(int[] seam) {
+        if (width() <= 1 || height() <= 1) {
+            throw new IllegalArgumentException("The width and height of the picture must be greatern than 1");
+        }
         if (seam.length <= 1) {
-            throw new IllegalArgumentException("The horizontal size must be greater than 1.");
+            throw new IllegalArgumentException("The vertical size must be greater than 1.");
         }
 
+        if (seam.length > width()) {
+            throw new IllegalArgumentException("The seam must not be greater than the image width!");
+        }
+
+        for (int i = 0; i < seam.length - 1; i++) {
+            if (Math.abs(seam[i] - seam[i + 1]) > 1) {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        this.picture = removeSeam(seam, false);
+        double[][] oldEnergy = energy;
+        energy = new double[width()][height()];
+
+        for (int y = 0; y < height(); y++) {
+            for (int x = 0; x < width(); x++) {
+                energy[x][y] = energy(x, y);
+            }
+        }
     }
 
     /**
@@ -119,9 +141,67 @@ public class SeamCarver {
      * @param seam
      */
     public void removeVerticalSeam(int[] seam) {
+        if (width() <= 1 || height() <= 1) {
+            throw new IllegalArgumentException("The width and height of the picture must be greatern than 1");
+        }
         if (seam.length <= 1) {
             throw new IllegalArgumentException("The vertical size must be greater than 1.");
         }
+        if (seam.length > height()) {
+            throw new IllegalArgumentException("The seam must not be greater than the image height!");
+        }
+
+        for (int i = 0; i < seam.length - 1; i++) {
+            if (Math.abs(seam[i] - seam[i + 1]) > 1) {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        this.picture = removeSeam(seam, true);
+        double[][] oldEnergy = energy;
+        energy = new double[width()][height()];
+
+        for (int y = 0; y < height(); y++) {
+            for (int x = 0; x < width(); x++) {
+                energy[x][y] = energy(x, y);
+            }
+        }
+    }
+
+    /**
+     * Removes one entire seam from the picture
+     * 
+     * @param seam
+     * @param vertical
+     *            Defines if the seam is vertical or horizontal
+     * @return A new picture with the seam removed
+     */
+    private Picture removeSeam(int[] seam, boolean vertical) {
+        if (vertical) {
+            Picture p = new Picture(width() - 1, height());
+            for (int y = 0; y < height(); y++) {
+                int k = 0;
+                for (int x = 0; x < width(); x++) {
+                    if (x != seam[y]) {
+                        p.set(k, y, picture.get(x, y));
+                        k++;
+                    }
+                }
+            }
+            return p;
+        }
+
+        Picture p = new Picture(width(), height() - 1);
+        for (int y = 0; y < width(); y++) {
+            int k = 0;
+            for (int x = 0; x < height(); x++) {
+                if (x != seam[y]) {
+                    p.set(y, k, picture.get(y, x));
+                    k++;
+                }
+            }
+        }
+        return p;
     }
 
     /**
@@ -190,6 +270,11 @@ public class SeamCarver {
         }
     }
 
+    /**
+     * Transposes the picture <br>
+     * IMPROVEMENT: transpose only the energy matrix when needed. Instead of transposing it back again, check if the energy matrix was actually
+     * transposed
+     */
     private void transpose() {
         Picture transposedPicture = new Picture(picture.height(), picture.width());
         double[][] newEnergy = new double[picture.height()][picture.width()];
