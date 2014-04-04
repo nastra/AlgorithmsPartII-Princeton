@@ -3,10 +3,18 @@ import java.awt.Color;
 public class SeamCarver {
     private Picture picture;
     private double[][] energy;
+    private int[][] parent;
+    private static final double MAX_ENERGY = 195075.0;
 
     public SeamCarver(Picture picture) {
         this.picture = new Picture(picture);
         energy = new double[picture.width()][picture.height()];
+        parent = new int[picture.width()][picture.height()];
+        for (int x = 0; x < width(); x++) {
+            for (int y = 0; y < height(); y++) {
+                energy[x][y] = energy(x, y);
+            }
+        }
     }
 
     /**
@@ -41,28 +49,56 @@ public class SeamCarver {
      */
     public double energy(int x, int y) {
         if (x < 0 || x > width() - 1 || y < 0 || y > height() - 1) {
-            return 195075.0;
+            throw new IndexOutOfBoundsException();
         }
         if (x == 0 || x == width() - 1 || y == 0 || y == height() - 1) {
-            return 195075.0;
+            return MAX_ENERGY;
         }
-        double xEnergy = xEnergy(x, y);
-        double yEnergy = yEnergy(x, y);
-        return xEnergy + yEnergy;
+        double xDiff = gradient(picture.get(x - 1, y), picture.get(x + 1, y));
+        double yDiff = gradient(picture.get(x, y - 1), picture.get(x, y + 1));
+        return xDiff + yDiff;
     }
 
     /**
      * @return A sequence of indices for horizontal seam in current picture
      */
     public int[] findHorizontalSeam() {
-        return null;
+        transpose();
+        int[] seam = findVerticalSeam();
+        transpose();
+        return seam;
     }
 
     /**
      * @return A sequence of indices for vertical seam in current picture
      */
     public int[] findVerticalSeam() {
-        return null;
+        int[] seam = new int[height()];
+        double[] distTo = new double[width()];
+        double[] oldDistTo = new double[width()];
+
+        for (int y = 0; y < height(); y++) {
+            for (int x = 0; x < width(); x++) {
+                relaxVertically(x, y, distTo, oldDistTo);
+            }
+            System.arraycopy(distTo, 0, oldDistTo, 0, width());
+        }
+
+        double min = oldDistTo[0];
+        int best = 0;
+        for (int index = 0; index < oldDistTo.length; index++) {
+            if (oldDistTo[index] < min) {
+                min = oldDistTo[index];
+                best = index;
+            }
+        }
+
+        seam[height() - 1] = best;
+        for (int i = height() - 2; i >= 0; i--) {
+            seam[i] = parent[best][i + 1];
+            best = parent[best][i + 1];
+        }
+        return seam;
     }
 
     /**
@@ -89,36 +125,82 @@ public class SeamCarver {
     }
 
     /**
-     * Square of the x-gradient Δx^2(x, y) = Rx(x, y)^2 + Gx(x, y)^2 + Bx(x, y)^2
+     * Square of the gradient Δ^2(x, y) = R(x, y)^2 + G(x, y)^2 + B(x, y)^2
      * 
-     * @param x
-     * @param y
-     * @return The square of the x-gradient at column x and row y.
+     * @param a
+     * @param b
+     * @return The square of the gradient
      */
-    private double xEnergy(int x, int y) {
-        Color leftPixel = picture.get(x - 1, y);
-        Color rightPixel = picture.get(x + 1, y);
-        int red = Math.abs(leftPixel.getRed() - rightPixel.getRed());
-        int green = Math.abs(leftPixel.getGreen() - rightPixel.getGreen());
-        int blue = Math.abs(leftPixel.getBlue() - rightPixel.getBlue());
-
+    private double gradient(Color a, Color b) {
+        int red = a.getRed() - b.getRed();
+        int green = a.getGreen() - b.getGreen();
+        int blue = a.getBlue() - b.getBlue();
         return red * red + green * green + blue * blue;
     }
 
-    /**
-     * Square of the y-gradient Δy^2(x, y) = Ry(x, y)^2 + Gy(x, y)^2 + By(x, y)^2
-     * 
-     * @param x
-     * @param y
-     * @return The square of the x-gradient at column x and row y.
-     */
-    private double yEnergy(int x, int y) {
-        Color upperPixel = picture.get(x, y - 1);
-        Color lowerPixel = picture.get(x, y + 1);
-        int red = Math.abs(upperPixel.getRed() - lowerPixel.getRed());
-        int green = Math.abs(upperPixel.getGreen() - lowerPixel.getGreen());
-        int blue = Math.abs(upperPixel.getBlue() - lowerPixel.getBlue());
+    private void relaxVertically(int col, int row, double[] distTo, double[] oldDistTo) {
+        if (row == 0) {
+            distTo[col] = MAX_ENERGY;
+            parent[col][row] = -1;
+            return;
+        }
 
-        return red * red + green * green + blue * blue;
+        if (col == 0) {
+            // we have only 2 edges
+            double a = oldDistTo[col];
+            double b = oldDistTo[col + 1];
+            double min = Math.min(a, b);
+            distTo[col] = min + energy[col][row];
+            if (a < min) {
+                parent[col][row] = col;
+            } else {
+                parent[col][row] = col + 1;
+            }
+            return;
+        }
+
+        if (col == width() - 1) {
+            // we have only 2 edges
+            double a = oldDistTo[col];
+            double b = oldDistTo[col - 1];
+            double min = Math.min(a, b);
+            distTo[col] = min + energy[col][row];
+            if (a < min) {
+                parent[col][row] = col;
+            } else {
+                parent[col][row] = col - 1;
+            }
+            return;
+        }
+
+        // for 3 edges
+        double left = oldDistTo[col - 1];
+        double mid = oldDistTo[col];
+        double right = oldDistTo[col + 1];
+
+        double min = Math.min(Math.min(left, mid), right);
+
+        distTo[col] = min + energy[col][row];
+        if (min == left) {
+            parent[col][row] = col - 1;
+        } else if (min == mid) {
+            parent[col][row] = col;
+        } else {
+            parent[col][row] = col + 1;
+        }
     }
+
+    private void transpose() {
+        Picture transposedPicture = new Picture(picture.height(), picture.width());
+        double[][] newEnergy = new double[picture.height()][picture.width()];
+        for (int i = 0; i < picture.width(); i++)
+            for (int k = 0; k < picture.height(); k++) {
+                transposedPicture.set(k, i, picture.get(i, k));
+                newEnergy[k][i] = energy[i][k];
+            }
+        energy = newEnergy;
+        picture = transposedPicture;
+        parent = new int[picture.width()][picture.height()];
+    }
+
 }
