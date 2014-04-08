@@ -15,3 +15,8 @@ Week 2 - Seam Carving (Content-Aware Resizing)
 --------------------------------
  - **SeamCarver.java** - Seam-carving is a content-aware image resizing technique where the image is reduced in size by one pixel of height (or width) at a time.
  
+
+Week 3 - Baseball Elimination
+--------------------------------
+ - **BaseballElimination.java** - We use maximum flow algorithms to solve the baseball elimination problem. 
+ 
