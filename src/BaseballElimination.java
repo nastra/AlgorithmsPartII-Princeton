@@ -77,7 +77,7 @@ public class BaseballElimination {
         if (!teamToId.containsKey(team1) || !teamToId.containsKey(team2)) {
             throw new IllegalArgumentException("The team is not known! Please specify a valid team name!");
         }
-        return 0;
+        return games[teamToId.get(team1)][teamToId.get(team2)];
     }
 
     public boolean isEliminated(String team) {
