@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,6 +15,7 @@ public class BaseballElimination {
     private int[][] games;
     private Map<String, Integer> teamToId;
     private int maxWins = Integer.MIN_VALUE;
+    private String leaderTeam;
 
     public BaseballElimination(String filename) {
         In in = new In(filename);
@@ -38,6 +38,7 @@ public class BaseballElimination {
             }
             if (wins[id] > maxWins) {
                 maxWins = wins[id];
+                leaderTeam = team;
             }
         }
     }
@@ -96,8 +97,8 @@ public class BaseballElimination {
         if (triviallyEliminated(id)) {
             return true;
         }
-        Graph g = buildGraphFor(id);
-        for (FlowEdge edge : g.network.adj(g.source)) {
+        Graph graph = buildGraphFor(id);
+        for (FlowEdge edge : graph.network.adj(graph.source)) {
             if (edge.flow() < edge.capacity()) {
                 return true;
             }
@@ -114,6 +115,55 @@ public class BaseballElimination {
             }
         }
         return false;
+    }
+
+    /**
+     * To verify that you are returning a valid certificate of elimination R, compute a(R) = (w(R) + g(R)) / |R|, where w(R) is the total number of
+     * wins of teams in R, g(R) is the total number of remaining games between teams in R, and |R| is the number of teams in R. Check that a(R) is
+     * greater than the maximum number of games the eliminated team can win
+     * 
+     * @param team
+     * @return The subset R of teams that eliminates given team; null if not eliminated
+     */
+    public Iterable<String> certificateOfElimination(String team) {
+        if (!teamToId.containsKey(team)) {
+            throw new IllegalArgumentException("The team is not known! Please specify a valid team name!");
+        }
+        Set<String> set = new HashSet<>();
+        if (triviallyEliminated(teamToId.get(team))) {
+            set.add(leaderTeam);
+            return set;
+        }
+        Graph g = buildGraphFor(teamToId.get(team));
+        for (FlowEdge edge : g.network.adj(g.source)) {
+            if (edge.flow() < edge.capacity()) {
+                for (String t : teams()) {
+                    int id = teamToId.get(t);
+                    if (g.ff.inCut(id)) {
+                        set.add(t);
+                    }
+                }
+            }
+        }
+        g = null;
+        if (set.isEmpty()) {
+            return null;
+        }
+        return set;
+    }
+
+    public static void main(String[] args) {
+        BaseballElimination division = new BaseballElimination(args[0]);
+        for (String team : division.teams()) {
+            if (division.isEliminated(team)) {
+                StdOut.print(team + " is eliminated by the subset R = { ");
+                for (String t : division.certificateOfElimination(team))
+                    StdOut.print(t + " ");
+                StdOut.println("}");
+            } else {
+                StdOut.println(team + " is not eliminated");
+            }
+        }
     }
 
     private Graph buildGraphFor(int id) {
@@ -147,35 +197,6 @@ public class BaseballElimination {
         }
         FordFulkerson ff = new FordFulkerson(network, source, sink);
         return new Graph(ff, network, source, sink);
-    }
-
-    /**
-     * To verify that you are returning a valid certificate of elimination R, compute a(R) = (w(R) + g(R)) / |R|, where w(R) is the total number of
-     * wins of teams in R, g(R) is the total number of remaining games between teams in R, and |R| is the number of teams in R. Check that a(R) is
-     * greater than the maximum number of games the eliminated team can win
-     * 
-     * @param team
-     * @return The subset R of teams that eliminates given team; null if not eliminated
-     */
-    public Iterable<String> certificateOfElimination(String team) {
-        if (!teamToId.containsKey(team)) {
-            throw new IllegalArgumentException("The team is not known! Please specify a valid team name!");
-        }
-        return new ArrayList<String>();
-    }
-
-    public static void main(String[] args) {
-        BaseballElimination division = new BaseballElimination(args[0]);
-        for (String team : division.teams()) {
-            if (division.isEliminated(team)) {
-                StdOut.print(team + " is eliminated by the subset R = { ");
-                for (String t : division.certificateOfElimination(team))
-                    StdOut.print(t + " ");
-                StdOut.println("}");
-            } else {
-                StdOut.println(team + " is not eliminated");
-            }
-        }
     }
 
     private class Graph {
