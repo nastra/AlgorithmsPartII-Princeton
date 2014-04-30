@@ -26,8 +26,8 @@ Boggle is a word game designed by Allan Turoff and distributed by Hasbro. It inv
 each die has a letter printed on each of its sides. At the beginning of the game, the 16 dice are shaken and randomly distributed into a 4-by-4 tray, with
 only the top sides of the dice visible.
 
-- ** BoggleBoard.java** - Represents a Boggle board.
-- ** BoggleSolver.java** - Implements an algorithm to solve Boggle boards.
+- **BoggleBoard.java** - Represents a Boggle board.
+- **BoggleSolver.java** - Implements an algorithm to solve Boggle boards.
 
 
 Week 5 - Burrows-Wheeler Compression Algorithm
@@ -36,5 +36,5 @@ Implement the Burrows-Wheeler data compression algorithm. This revolutionary alg
 relatively easy to implement, and is not protected by any patents. It forms the basis of the Unix compression utililty bzip2.
 
 - **CircularSuffixArray.java** - Describes the abstraction of a sorted array of the N circular suffixes of a string of length N.
-- ** MoveToFront.java** - Maintains an ordered sequence of the 256 extended ASCII characters and provides encoding and decoding steps.
+- **MoveToFront.java** - Maintains an ordered sequence of the 256 extended ASCII characters and provides encoding and decoding steps.
 - **BurrowsWheeler.java** - Implements the actual encoding and decoding algorithms.
